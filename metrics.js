@@ -1,63 +1,24 @@
-function distance(a,b){
-    return Math.hypot(
-        b.x-a.x,
-        b.y-a.y
-    );
+import { METRIC_DEFINITIONS } from "./definitions.js";
+
+export function evaluateMetricScore(value, min, max) {
+  const mid = (min + max) / 2;
+  const halfRange = (max - min) / 2;
+  if (halfRange === 0) return { score: "0.00", status: "optimal" };
+
+  const scoreNum = Math.abs(value - mid) / halfRange;
+  const formattedScore = scoreNum.toFixed(2);
+  const status = scoreNum <= 1.0 ? "optimal" : "outside";
+
+  return { score: formattedScore, status };
 }
 
-export function calculateMetrics(
-{
-    frontal
-}
-){
-
-    const metrics=[];
-
-    const faceWidth=
-        distance(
-            frontal[234],
-            frontal[454]
-        );
-
-    const faceHeight=
-        distance(
-            frontal[10],
-            frontal[152]
-        );
-
-    metrics.push({
-        name:
-          "Facial Height / Width Ratio",
-
-        value:
-          faceHeight/faceWidth,
-
-        min:1.30,
-        max:1.50
-    });
-
-    return metrics;
-}
-
-export function scoreMetric(
-value,
-min,
-max
-){
-
-    const center=
-      (min+max)/2;
-
-    const width=
-      (max-min)/2;
-
-    const dev=
-      Math.abs(value-center);
-
-    return Math.max(
-      0,
-      Math.round(
-        100-(dev/width)*100
-      )
-    );
+export function computeMetricValue(metricDef, userPoints) {
+  try {
+    const val = metricDef.calculate(userPoints);
+    if (isNaN(val) || val === null) return null;
+    return val;
+  } catch (e) {
+    console.error(`Error computing ${metricDef.id}:`, e);
+    return null;
+  }
 }
