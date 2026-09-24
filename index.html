@@ -2,108 +2,177 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>FACET</title>
-
-  ./style.css
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FACET // Facial Geometry Engine</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<div class="layout">
-
-  <aside class="sidebar">
-    <h1>FACET</h1>
-
-    <button class="nav-btn active">Analysis</button>
-    <button class="nav-btn">Metrics</button>
-    <button class="nav-btn">Methodology</button>
-  </aside>
-
-  <main>
-
-    <section class="panel">
-
-      <h2>Frontal Photograph</h2>
-
-      <p>
-        The subject should:
-      </p>
-
-      <ul>
-        <li>Stand approximately 2 meters from camera</li>
-        <li>Face directly forward</li>
-        <li>Maintain neutral expression</li>
-        <li>Keep forehead visible</li>
-        <li>Use even lighting</li>
-      </ul>
-
-      <input
-        type="file"
-        id="frontFile"
-        accept="image/*">
-
-      <img id="frontPreview">
-    </section>
-
-    <section class="panel">
-
-      <h2>Side Profile Photograph</h2>
-
-      <ul>
-        <li>True lateral profile</li>
-        <li>Forehead visible</li>
-        <li>Nose visible</li>
-        <li>Chin visible</li>
-        <li>Neutral posture</li>
-      </ul>
-
-      <input
-        type="file"
-        id="profileFile"
-        accept="image/*">
-
-      <img id="profilePreview">
-    </section>
-
-    <section class="panel">
-
-      <button id="analyzeBtn">
-        Analyze Face
-      </button>
-
-      <div id="status">
-        Waiting for images...
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <h2>FACET</h2>
       </div>
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="analysis">
+          <span class="icon">⬚</span> Analysis
+        </button>
+        <button class="nav-item" data-tab="metrics">
+          <span class="icon">≡</span> Metrics
+        </button>
+        <button class="nav-item" data-tab="methodology">
+          <span class="icon">ℹ</span> Methodology
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="version">v2.0.0 // BUNDLED</span>
+      </div>
+    </aside>
 
-    </section>
+    <main class="content-area">
+      <!-- TAB 1: ANALYSIS -->
+      <section id="tab-analysis" class="tab-page active">
+        <header class="section-header">
+          <h1>FACIAL GEOMETRY WORKFLOW</h1>
+          <p>Sequential metric verification and objective geometric evaluation.</p>
+        </header>
 
-    <section
-      id="results"
-      class="panel hidden">
+        <div class="upload-grid">
+          <!-- FRONTAL PHOTO CARD -->
+          <div class="upload-card" id="frontCard">
+            <div class="card-header">
+              <span class="step-badge">STEP 1</span>
+              <h3>FRONTAL PHOTOGRAPH</h3>
+            </div>
+            <div class="preview-box">
+              <img id="frontPreview" alt="Frontal View">
+              <div class="placeholder" id="frontPlaceholder">
+                <span class="icon">📷</span>
+                <p>Click "Add Photo" to view capture requirements</p>
+              </div>
+            </div>
+            <button class="primary-btn" id="frontGuideBtn">ADD FRONTAL PHOTO</button>
+            <input type="file" id="frontFile" accept="image/*" class="hidden-input">
+          </div>
 
-      <h2>Analysis Results</h2>
+          <!-- SIDE PROFILE PHOTO CARD -->
+          <div class="upload-card" id="profileCard">
+            <div class="card-header">
+              <span class="step-badge">STEP 2</span>
+              <h3>SIDE-PROFILE PHOTOGRAPH</h3>
+            </div>
+            <div class="preview-box">
+              <img id="profilePreview" alt="Profile View">
+              <div class="placeholder" id="profilePlaceholder">
+                <span class="icon">📷</span>
+                <p>Complete Frontal Analysis first</p>
+              </div>
+            </div>
+            <button class="primary-btn" id="profileGuideBtn" disabled>ADD PROFILE PHOTO</button>
+            <input type="file" id="profileFile" accept="image/*" class="hidden-input">
+          </div>
+        </div>
 
-      <table>
-        <thead>
-        <tr>
-          <th>Metric</th>
-          <th>Your Result</th>
-          <th>Ideal Range</th>
-          <th>Score</th>
-        </tr>
-        </thead>
+        <!-- WORKFLOW / EDITOR SECTION -->
+        <section id="editorSection" class="editor-section hidden">
+          <div class="editor-header">
+            <h2 id="editorMetricTitle">Metric Point Fine-Tuning</h2>
+            <span id="editorMetricProgress" class="progress-badge">1 / 10</span>
+          </div>
+          <p id="editorInstructions" class="editor-instructions"></p>
+          
+          <div class="canvas-wrapper">
+            <canvas id="editorCanvas"></canvas>
+          </div>
 
-        <tbody id="resultsBody"></tbody>
+          <div class="editor-controls">
+            <button id="resetPointsBtn" class="secondary-btn">Reset Points</button>
+            <button id="confirmMetricBtn" class="action-btn">CONFIRM & NEXT →</button>
+          </div>
+        </section>
 
-      </table>
+        <!-- RESULTS SECTION -->
+        <section id="resultsSection" class="results-section hidden">
+          <div class="results-header">
+            <h2>MEASUREMENT BREAKDOWN</h2>
+            <p>Scale-independent ratios and angles derived from your verified landmarks.</p>
+          </div>
+          <div class="results-table-wrapper">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th>TYPE</th>
+                  <th>METRIC</th>
+                  <th>YOUR RESULT</th>
+                  <th>IDEAL RANGE</th>
+                  <th>COMPARISON SCORE</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
 
-    </section>
+      <!-- TAB 2: METRICS LIBRARY -->
+      <section id="tab-metrics" class="tab-page hidden">
+        <header class="section-header">
+          <h1>METRICS DEFINITIONS LIBRARY</h1>
+          <p>Full breakdown of anatomical formulas and target reference ranges.</p>
+        </header>
+        <div id="metricsLibraryContainer" class="metrics-grid"></div>
+      </section>
 
-  </main>
+      <!-- TAB 3: METHODOLOGY -->
+      <section id="tab-methodology" class="tab-page hidden">
+        <header class="section-header">
+          <h1>FACET METHODOLOGY</h1>
+          <p>Objective scale-independent geometric analysis.</p>
+        </header>
+        <div class="methodology-card">
+          <h3>Ratio & Vector Principles</h3>
+          <p>To eliminate camera distance errors and size variance, FACET strictly uses normalized distance ratios ($d_1 / d_2$) and angular vectors. No universal facial width in millimeters is assumed.</p>
+          <br>
+          <h3>Comparison Score Scale</h3>
+          <ul>
+            <li><strong>0.00:</strong> Exactly at the midpoint of the clinical reference interval.</li>
+            <li><strong>1.00:</strong> Positioned at the outer boundary of the reference interval.</li>
+            <li><strong>&gt; 1.00:</strong> Outside standard reference boundaries.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
 
-</div>
+  <!-- GUIDELINE & VALIDATION MODAL -->
+  <div id="guideModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2 id="modalTitle">PHOTOGRAPH GUIDELINES</h2>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="num">1</span>
+          <p>Stand 2 meters (6.5 ft) back from a mirror or camera with natural lighting.</p>
+        </div>
+        <div class="guide-step">
+          <span class="num">2</span>
+          <p>Zoom in optical 2x to eliminate lens distortion and edge bending.</p>
+        </div>
+        <div class="guide-step">
+          <span class="num">3</span>
+          <p>Keep your head level with a neutral expression (Frankfort horizontal plane).</p>
+        </div>
+      </div>
+      <div id="validationAlert" class="validation-alert hidden"></div>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="secondary-btn">Cancel</button>
+        <button id="modalUploadTrigger" class="action-btn">PROCEED TO UPLOAD</button>
+      </div>
+    </div>
+  </div>
 
-./app.js</script>
-
+  <script type="module" src="/app.js"></script>
 </body>
-</html
+</html>
