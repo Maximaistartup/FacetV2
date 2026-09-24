@@ -1,1 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FACET</title>
 
+  ./style.css
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <h1>FACET</h1>
+
+    <button class="nav-btn active">Analysis</button>
+    <button class="nav-btn">Metrics</button>
+    <button class="nav-btn">Methodology</button>
+  </aside>
+
+  <main>
+
+    <section class="panel">
+
+      <h2>Frontal Photograph</h2>
+
+      <p>
+        The subject should:
+      </p>
+
+      <ul>
+        <li>Stand approximately 2 meters from camera</li>
+        <li>Face directly forward</li>
+        <li>Maintain neutral expression</li>
+        <li>Keep forehead visible</li>
+        <li>Use even lighting</li>
+      </ul>
+
+      <input
+        type="file"
+        id="frontFile"
+        accept="image/*">
+
+      <img id="frontPreview">
+    </section>
+
+    <section class="panel">
+
+      <h2>Side Profile Photograph</h2>
+
+      <ul>
+        <li>True lateral profile</li>
+        <li>Forehead visible</li>
+        <li>Nose visible</li>
+        <li>Chin visible</li>
+        <li>Neutral posture</li>
+      </ul>
+
+      <input
+        type="file"
+        id="profileFile"
+        accept="image/*">
+
+      <img id="profilePreview">
+    </section>
+
+    <section class="panel">
+
+      <button id="analyzeBtn">
+        Analyze Face
+      </button>
+
+      <div id="status">
+        Waiting for images...
+      </div>
+
+    </section>
+
+    <section
+      id="results"
+      class="panel hidden">
+
+      <h2>Analysis Results</h2>
+
+      <table>
+        <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Your Result</th>
+          <th>Ideal Range</th>
+          <th>Score</th>
+        </tr>
+        </thead>
+
+        <tbody id="resultsBody"></tbody>
+
+      </table>
+
+    </section>
+
+  </main>
+
+</div>
+
+./app.js</script>
+
+</body>
+</html
