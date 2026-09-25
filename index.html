@@ -4,178 +4,448 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FACET // Facial Geometry Engine</title>
-  
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
   
-  <link rel="stylesheet" href="/style.css">
+  <!-- MediaPipe Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+  
+  <!-- Math & Technical Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #0a0d12;
+      --panel-bg: #121721;
+      --panel-border: #1e2838;
+      --accent-cyan: #00f0ff;
+      --accent-blue: #0077ff;
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --font-mono: 'Fira Code', monospace;
+      --font-sans: 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: 2px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    nav { display: flex; gap: 1rem; }
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      color: var(--accent-cyan);
+      border-color: var(--panel-border);
+      background: rgba(0, 240, 255, 0.05);
+    }
+
+    /* Layout Structure */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .viewport-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: #05070a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 600px;
+    }
+
+    canvas, img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
+    #overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: auto;
+    }
+
+    /* Side Control Panel */
+    .control-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      overflow-y: auto;
+      max-height: 85vh;
+    }
+
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .btn-group { display: flex; gap: 0.75rem; }
+    .btn {
+      flex: 1;
+      background: var(--panel-border);
+      color: var(--text-main);
+      border: 1px solid transparent;
+      padding: 0.75rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .btn-primary {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .btn-primary:hover {
+      background: rgba(0, 240, 255, 0.25);
+    }
+
+    /* Metric Display Cards */
+    .metric-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .metric-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      padding: 0.85rem;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .metric-name { font-size: 0.85rem; font-weight: 500; }
+    .metric-val { font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600; }
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+    }
+    .badge-optimal { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .badge-dev { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+
+    /* Instructions / Callouts */
+    .info-box {
+      background: rgba(0, 119, 255, 0.08);
+      border-left: 3px solid var(--accent-blue);
+      padding: 0.85rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    hidden { display: none !important; }
+  </style>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <div class="logo">
-        <span class="logo-icon">◈</span>
-        <h2>FACET</h2>
-      </div>
-      <nav class="nav-menu">
-        <button class="nav-item active" data-tab="analysis">
-          <span class="icon">⬚</span> Analysis
-        </button>
-        <button class="nav-item" data-tab="metrics">
-          <span class="icon">≡</span> Metrics
-        </button>
-        <button class="nav-item" data-tab="methodology">
-          <span class="icon">ℹ</span> Methodology
-        </button>
-      </nav>
-      <div class="sidebar-footer">
-        <span class="version">v2.0.0 // BUNDLED</span>
-      </div>
-    </aside>
 
-    <main class="content-area">
-      <!-- TAB 1: ANALYSIS -->
-      <section id="tab-analysis" class="tab-page active">
-        <header class="section-header">
-          <h1>FACIAL GEOMETRY WORKFLOW</h1>
-          <p>Sequential metric verification and objective geometric evaluation.</p>
-        </header>
+  <header>
+    <div class="brand">FACET // GEOMETRY_ENGINE</div>
+    <nav>
+      <button class="nav-btn active" onclick="switchTab('analysis')">ANALYSIS</button>
+      <button class="nav-btn" onclick="switchTab('dictionary')">DICTIONARY</button>
+      <button class="nav-btn" onclick="switchTab('methodology')">METHODOLOGY</button>
+    </nav>
+  </header>
 
-        <div class="upload-grid">
-          <!-- FRONTAL PHOTO CARD -->
-          <div class="upload-card" id="frontCard">
-            <div class="card-header">
-              <span class="step-badge">STEP 1</span>
-              <h3>FRONTAL PHOTOGRAPH</h3>
-            </div>
-            <div class="preview-box">
-              <img id="frontPreview" alt="Frontal View">
-              <div class="placeholder" id="frontPlaceholder">
-                <span class="icon">📷</span>
-                <p>Click "Add Photo" to view capture requirements</p>
-              </div>
-            </div>
-            <button class="primary-btn" id="frontGuideBtn">ADD FRONTAL PHOTO</button>
-            <input type="file" id="frontFile" accept="image/*" class="hidden-input">
-          </div>
-
-          <!-- SIDE PROFILE PHOTO CARD -->
-          <div class="upload-card" id="profileCard">
-            <div class="card-header">
-              <span class="step-badge">STEP 2</span>
-              <h3>SIDE-PROFILE PHOTOGRAPH</h3>
-            </div>
-            <div class="preview-box">
-              <img id="profilePreview" alt="Profile View">
-              <div class="placeholder" id="profilePlaceholder">
-                <span class="icon">📷</span>
-                <p>Complete Frontal Analysis first</p>
-              </div>
-            </div>
-            <button class="primary-btn" id="profileGuideBtn" disabled>ADD PROFILE PHOTO</button>
-            <input type="file" id="profileFile" accept="image/*" class="hidden-input">
-          </div>
-        </div>
-
-        <!-- WORKFLOW / EDITOR SECTION -->
-        <section id="editorSection" class="editor-section hidden">
-          <div class="editor-header">
-            <h2 id="editorMetricTitle">Metric Point Fine-Tuning</h2>
-            <span id="editorMetricProgress" class="progress-badge">1 / 10</span>
-          </div>
-          <p id="editorInstructions" class="editor-instructions"></p>
-          
-          <div class="canvas-wrapper">
-            <canvas id="editorCanvas"></canvas>
-          </div>
-
-          <div class="editor-controls">
-            <button id="resetPointsBtn" class="secondary-btn">Reset Points</button>
-            <button id="confirmMetricBtn" class="action-btn">CONFIRM & NEXT →</button>
-          </div>
-        </section>
-
-        <!-- RESULTS SECTION -->
-        <section id="resultsSection" class="results-section hidden">
-          <div class="results-header">
-            <h2>MEASUREMENT BREAKDOWN</h2>
-            <p>Scale-independent ratios and angles derived from your verified landmarks.</p>
-          </div>
-          <div class="results-table-wrapper">
-            <table class="results-table">
-              <thead>
-                <tr>
-                  <th>TYPE</th>
-                  <th>METRIC</th>
-                  <th>YOUR RESULT</th>
-                  <th>IDEAL RANGE</th>
-                  <th>COMPARISON SCORE</th>
-                </tr>
-              </thead>
-              <tbody id="resultsTableBody"></tbody>
-            </table>
-          </div>
-        </section>
-      </section>
-
-      <!-- TAB 2: METRICS LIBRARY -->
-      <section id="tab-metrics" class="tab-page hidden">
-        <header class="section-header">
-          <h1>METRICS DEFINITIONS LIBRARY</h1>
-          <p>Full breakdown of anatomical formulas and target reference ranges.</p>
-        </header>
-        <div id="metricsLibraryContainer" class="metrics-grid"></div>
-      </section>
-
-      <!-- TAB 3: METHODOLOGY -->
-      <section id="tab-methodology" class="tab-page hidden">
-        <header class="section-header">
-          <h1>FACET METHODOLOGY</h1>
-          <p>Objective scale-independent geometric analysis.</p>
-        </header>
-        <div class="methodology-card">
-          <h3>Ratio & Vector Principles</h3>
-          <p>To eliminate camera distance errors and size variance, FACET strictly uses normalized distance ratios ($d_1 / d_2$) and angular vectors. No universal facial width in millimeters is assumed.</p>
-          <br>
-          <h3>Comparison Score Scale</h3>
-          <ul>
-            <li><strong>0.00:</strong> Exactly at the midpoint of the clinical reference interval.</li>
-            <li><strong>1.00:</strong> Positioned at the outer boundary of the reference interval.</li>
-            <li><strong>&gt; 1.00:</strong> Outside standard reference boundaries.</li>
-          </ul>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- GUIDELINE & VALIDATION MODAL -->
-  <div id="guideModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <h2 id="modalTitle">PHOTOGRAPH GUIDELINES</h2>
-      <div class="guide-steps">
-        <div class="guide-step">
-          <span class="num">1</span>
-          <p>Stand 2 meters (6.5 ft) back from a mirror or camera with natural lighting.</p>
-        </div>
-        <div class="guide-step">
-          <span class="num">2</span>
-          <p>Zoom in optical 2x to eliminate lens distortion and edge bending.</p>
-        </div>
-        <div class="guide-step">
-          <span class="num">3</span>
-          <p>Keep your head level with a neutral expression (Frankfort horizontal plane).</p>
-        </div>
-      </div>
-      <div id="validationAlert" class="validation-alert hidden"></div>
-      <div class="modal-actions">
-        <button id="modalCancelBtn" class="secondary-btn">Cancel</button>
-        <button id="modalUploadTrigger" class="action-btn">PROCEED TO UPLOAD</button>
+  <main id="tab-analysis">
+    <!-- Viewport Panel -->
+    <div class="viewport-panel">
+      <div class="canvas-container" id="canvasContainer">
+        <!-- Default High-Precision Reference Subject -->
+        <img id="faceImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80" crossorigin="anonymous" alt="Frontal Calibration Target">
+        <canvas id="overlayCanvas"></canvas>
       </div>
     </div>
-  </div>
 
-  <script type="module" src="/app.js"></script>
+    <!-- Controls Panel -->
+    <div class="control-panel">
+      <div class="panel-title">IMAGE_SOURCE</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">UPLOAD PHOTO</button>
+        <button class="btn" onclick="loadDefaultSubject('front')">RESET FRONTAL</button>
+        <button class="btn" onclick="loadDefaultSubject('profile')">PROFILE</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" class="hidden" style="display:none;" onchange="handleFileUpload(event)">
+
+      <div class="info-box">
+        <strong>ALIGNMENT_VERIFICATION:</strong> Manual landmark positions can be drag-adjusted directly on the viewport canvas to ensure exact anatomical targeting.
+      </div>
+
+      <div class="panel-title">QUANTITATIVE_METRICS</div>
+      <div class="metric-list" id="metricContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Exact Anatomical Landmarks for Reference Subject
+    const REFERENCE_LANDMARKS = {
+      front: {
+        hairline: { x: 0.500, y: 0.220, label: "Trichion (Tr)" },
+        glabella: { x: 0.500, y: 0.350, label: "Glabella (G)" },
+        nasion: { x: 0.500, y: 0.390, label: "Nasion (N)" },
+        pronasale: { x: 0.500, y: 0.520, label: "Pronasale (Prn)" },
+        subnasale: { x: 0.500, y: 0.585, label: "Subnasale (Sn)" },
+        stomion: { x: 0.500, y: 0.640, label: "Stomion (Sto)" },
+        pogonion: { x: 0.500, y: 0.770, label: "Pogonion (Pog)" },
+        chin: { x: 0.500, y: 0.810, label: "Menton (Me)" },
+        lCheek: { x: 0.355, y: 0.470, label: "L Zygion (Zy_L)" },
+        rCheek: { x: 0.645, y: 0.470, label: "R Zygion (Zy_R)" },
+        lGonion: { x: 0.380, y: 0.690, label: "L Gonion (Go_L)" },
+        rGonion: { x: 0.620, y: 0.690, label: "R Gonion (Go_R)" },
+        lInnerEye: { x: 0.445, y: 0.400, label: "L Medial Canthus" },
+        rInnerEye: { x: 0.555, y: 0.400, label: "R Medial Canthus" },
+        lOuterEye: { x: 0.380, y: 0.395, label: "L Lateral Canthus" },
+        rOuterEye: { x: 0.620, y: 0.395, label: "R Lateral Canthus" }
+      }
+    };
+
+    let activePoints = JSON.parse(JSON.stringify(REFERENCE_LANDMARKS.front));
+    let draggingPoint = null;
+
+    const imgElement = document.getElementById('faceImage');
+    const canvas = document.getElementById('overlayCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function initCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      drawOverlays();
+    }
+
+    function drawOverlays() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const rect = imgElement.getBoundingClientRect();
+      const containerRect = canvas.parentElement.getBoundingClientRect();
+      
+      const offsetX = rect.left - containerRect.left;
+      const offsetY = rect.top - containerRect.top;
+      const scaleX = rect.width;
+      const scaleY = rect.height;
+
+      // Draw Connection Lines
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.4)";
+      ctx.lineWidth = 1;
+
+      // Vertical Facial Axis
+      ctx.beginPath();
+      ctx.moveTo(offsetX + activePoints.hairline.x * scaleX, offsetY + activePoints.hairline.y * scaleY);
+      ctx.lineTo(offsetX + activePoints.chin.x * scaleX, offsetY + activePoints.chin.y * scaleY);
+      ctx.stroke();
+
+      // Bizygomatic Axis
+      ctx.beginPath();
+      ctx.moveTo(offsetX + activePoints.lCheek.x * scaleX, offsetY + activePoints.lCheek.y * scaleY);
+      ctx.lineTo(offsetX + activePoints.rCheek.x * scaleX, offsetY + activePoints.rCheek.y * scaleY);
+      ctx.stroke();
+
+      // Bigonial Axis
+      ctx.beginPath();
+      ctx.moveTo(offsetX + activePoints.lGonion.x * scaleX, offsetY + activePoints.lGonion.y * scaleY);
+      ctx.lineTo(offsetX + activePoints.rGonion.x * scaleX, offsetY + activePoints.rGonion.y * scaleY);
+      ctx.stroke();
+
+      // Draw Landmark Nodes
+      Object.keys(activePoints).forEach(key => {
+        const pt = activePoints[key];
+        const px = offsetX + pt.x * scaleX;
+        const py = offsetY + pt.y * scaleY;
+
+        ctx.fillStyle = "#00f0ff";
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.font = "10px Fira Code";
+        ctx.fillStyle = "#00f0ff";
+        ctx.fillText(pt.label, px + 10, py + 3);
+      });
+
+      calculateAndRenderMetrics();
+    }
+
+    function calculateAndRenderMetrics() {
+      const container = document.getElementById('metricContainer');
+      container.innerHTML = '';
+
+      // Distance Math
+      const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+
+      const metrics = [
+        {
+          name: "Upper FWHR",
+          val: (dist(activePoints.lCheek, activePoints.rCheek) / (dist(activePoints.nasion, activePoints.stomion) || 1)).toFixed(2),
+          ideal: "1.90 - 2.00",
+          unit: "ratio"
+        },
+        {
+          name: "Total Facial Width / Height",
+          val: (dist(activePoints.lCheek, activePoints.rCheek) / (dist(activePoints.hairline, activePoints.chin) || 1)).toFixed(2),
+          ideal: "1.30 - 1.35",
+          unit: "ratio"
+        },
+        {
+          name: "Bigonial / Bizygomatic Ratio",
+          val: ((dist(activePoints.lGonion, activePoints.rGonion) / (dist(activePoints.lCheek, activePoints.rCheek) || 1)) * 100).toFixed(1),
+          ideal: "86.0 - 90.0",
+          unit: "%"
+        },
+        {
+          name: "Intercanthal Index",
+          val: (dist(activePoints.lInnerEye, activePoints.rInnerEye) / (dist(activePoints.lOuterEye, activePoints.lInnerEye) || 1)).toFixed(2),
+          ideal: "1.00 - 1.05",
+          unit: "ratio"
+        }
+      ];
+
+      metrics.forEach(m => {
+        container.innerHTML += `
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">${m.name}</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Target: ${m.ideal} ${m.unit}</div>
+            </div>
+            <div class="metric-val">${m.val}</div>
+          </div>
+        `;
+      });
+    }
+
+    // Interactivity: Dragging Landmarks
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = imgElement.getBoundingClientRect();
+      const containerRect = canvas.parentElement.getBoundingClientRect();
+      const mouseX = e.clientX - containerRect.left;
+      const mouseY = e.clientY - containerRect.top;
+
+      const offsetX = rect.left - containerRect.left;
+      const offsetY = rect.top - containerRect.top;
+
+      Object.keys(activePoints).forEach(key => {
+        const pt = activePoints[key];
+        const px = offsetX + pt.x * rect.width;
+        const py = offsetY + pt.y * rect.height;
+
+        if (Math.hypot(mouseX - px, mouseY - py) < 10) {
+          draggingPoint = key;
+        }
+      });
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!draggingPoint) return;
+      const rect = imgElement.getBoundingClientRect();
+      const containerRect = canvas.parentElement.getBoundingClientRect();
+
+      const offsetX = rect.left - containerRect.left;
+      const offsetY = rect.top - containerRect.top;
+
+      activePoints[draggingPoint].x = Math.max(0, Math.min(1, (e.clientX - containerRect.left - offsetX) / rect.width));
+      activePoints[draggingPoint].y = Math.max(0, Math.min(1, (e.clientY - containerRect.top - offsetY) / rect.height));
+
+      drawOverlays();
+    });
+
+    window.addEventListener('mouseup', () => draggingPoint = null);
+    window.addEventListener('resize', initCanvas);
+    imgElement.onload = initCanvas;
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          imgElement.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function loadDefaultSubject(type) {
+      if (type === 'front') {
+        imgElement.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80";
+        activePoints = JSON.parse(JSON.stringify(REFERENCE_LANDMARKS.front));
+      } else {
+        imgElement.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1000&q=80";
+      }
+    }
+  </script>
 </body>
 </html>
