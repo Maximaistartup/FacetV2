@@ -6,7 +6,11 @@
   <title>FACET // Facial Geometry Engine</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
   
-  <!-- Technical & Mathematical Typography -->
+  <!-- MediaPipe Libraries for Auto-Detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+  
+  <!-- Math & Technical Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -35,12 +39,13 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
     header {
       background: var(--panel-bg);
       border-bottom: 1px solid var(--panel-border);
-      padding: 1rem 2rem;
+      padding: 0.85rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -48,20 +53,31 @@
     .brand {
       font-family: var(--font-mono);
       font-weight: 700;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       letter-spacing: 2px;
       color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     main {
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 420px;
-      gap: 1.5rem;
-      padding: 1.5rem;
+      gap: 1.25rem;
+      padding: 1.25rem;
       max-width: 1600px;
       margin: 0 auto;
       width: 100%;
+      height: calc(100vh - 65px);
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
     }
 
     .viewport-panel {
@@ -72,6 +88,19 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
+      min-height: 500px;
+    }
+
+    .viewport-toolbar {
+      background: rgba(0,0,0,0.3);
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     .canvas-container {
@@ -81,14 +110,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 600px;
-      cursor: crosshair;
+      overflow: hidden;
+      user-select: none;
     }
 
-    canvas, img {
+    #faceImage {
       max-width: 100%;
-      max-height: 70vh;
+      max-height: 100%;
       object-fit: contain;
+      display: block;
+      pointer-events: none;
     }
 
     #overlayCanvas {
@@ -97,53 +128,60 @@
       left: 0;
       width: 100%;
       height: 100%;
+      cursor: crosshair;
     }
 
     .control-panel {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: 8px;
-      padding: 1.5rem;
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 1rem;
       overflow-y: auto;
-      max-height: 85vh;
     }
 
     .panel-title {
       font-family: var(--font-mono);
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--accent-cyan);
       border-bottom: 1px solid var(--panel-border);
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .active-point-banner {
-      background: rgba(0, 240, 255, 0.1);
+      background: rgba(0, 240, 255, 0.08);
       border: 1px solid var(--accent-cyan);
-      padding: 0.85rem;
-      border-radius: 4px;
+      padding: 0.75rem;
+      border-radius: 6px;
       font-family: var(--font-mono);
     }
-    .point-name { color: var(--accent-cyan); font-weight: 700; font-size: 1rem; }
-    .point-desc { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
+    .point-name { color: var(--accent-cyan); font-weight: 700; font-size: 0.95rem; }
+    .point-desc { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.2rem; }
 
-    .btn-group { display: flex; gap: 0.75rem; }
+    .btn-group { display: flex; gap: 0.5rem; }
     .btn {
       flex: 1;
       background: var(--panel-border);
       color: var(--text-main);
       border: 1px solid transparent;
-      padding: 0.75rem 1rem;
+      padding: 0.6rem 0.8rem;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       cursor: pointer;
       border-radius: 4px;
       transition: all 0.2s;
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
     }
     .btn-primary {
       background: rgba(0, 240, 255, 0.15);
@@ -153,64 +191,125 @@
     .btn-primary:hover {
       background: rgba(0, 240, 255, 0.25);
     }
+    .btn-success {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .btn-success:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
 
     .point-selector-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
+      gap: 0.4rem;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 0.2rem;
     }
     .point-btn {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--panel-border);
       color: var(--text-muted);
-      padding: 0.5rem;
+      padding: 0.45rem 0.6rem;
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       border-radius: 4px;
       cursor: pointer;
       text-align: left;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: all 0.15s ease;
+    }
+    .point-btn:hover {
+      border-color: rgba(0, 240, 255, 0.4);
+      color: var(--text-main);
     }
     .point-btn.active {
       border-color: var(--accent-cyan);
       color: var(--accent-cyan);
-      background: rgba(0, 240, 255, 0.05);
+      background: rgba(0, 240, 255, 0.08);
+      font-weight: 600;
     }
     .point-btn.placed {
-      border-color: var(--success);
+      border-color: rgba(16, 185, 129, 0.4);
       color: var(--success);
     }
 
     .metric-card {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--panel-border);
-      padding: 0.85rem;
+      padding: 0.75rem;
       border-radius: 4px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .metric-name { font-size: 0.85rem; font-weight: 500; }
-    .metric-val { font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600; }
+    .metric-name { font-size: 0.8rem; font-weight: 500; }
+    .metric-val { font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600; font-size: 0.95rem; }
+
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 13, 18, 0.85);
+      border: 2px dashed var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .canvas-container.dragover .drop-overlay {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">FACET // POINT_ALIGNMENT_ENGINE</div>
+    <div class="brand">
+      <span>📐</span> FACET // FACIAL_GEOMETRY_ENGINE
+    </div>
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">
+      PRECISION_MODE: V2.4_FIXED
+    </div>
   </header>
 
   <main>
+    <!-- Viewport Panel -->
     <div class="viewport-panel">
+      <div class="viewport-toolbar">
+        <span id="imageDimensions">IMAGE: LOADING...</span>
+        <span>DRAG POINTS OR CLICK TO PLACE</span>
+      </div>
       <div class="canvas-container" id="canvasContainer">
         <img id="faceImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80" crossorigin="anonymous" alt="Target Subject">
         <canvas id="overlayCanvas"></canvas>
+        <div class="drop-overlay">DROP IMAGE FILE HERE</div>
       </div>
     </div>
 
+    <!-- Controls Panel -->
     <div class="control-panel">
+      <div class="panel-title">
+        <span>IMAGE_SOURCE</span>
+        <span id="detectionStatus" style="color: var(--text-muted); font-size: 0.7rem;">READY</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="uploadBtn">
+          <span>📁</span> UPLOAD PHOTO
+        </button>
+        <button class="btn btn-success" id="autoDetectBtn">
+          <span>✨</span> AUTO-DETECT
+        </button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
       <div class="panel-title">ACTIVE_TARGET_LANDMARK</div>
       <div class="active-point-banner">
         <div class="point-name" id="activePointTitle">Trichion (Tr)</div>
@@ -218,22 +317,25 @@
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="confirmAndNext()">CONFIRM & NEXT</button>
-        <button class="btn" onclick="document.getElementById('fileInput').click()">UPLOAD</button>
+        <button class="btn" id="prevBtn">◄ PREV</button>
+        <button class="btn btn-primary" id="nextBtn">NEXT ►</button>
+        <button class="btn" id="resetBtn">RESET ALL</button>
       </div>
-      <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(event)">
 
-      <div class="panel-title">LANDMARK_QUEUE</div>
+      <div class="panel-title">
+        <span>LANDMARK_QUEUE</span>
+        <span id="queueProgress" style="color: var(--text-muted); font-size: 0.7rem;">0 / 15</span>
+      </div>
       <div class="point-selector-grid" id="pointGrid"></div>
 
-      <div class="panel-title">CALCULATED_METRICS</div>
-      <div id="metricContainer"></div>
+      <div class="panel-title">QUANTITATIVE_METRICS</div>
+      <div class="metric-list" id="metricContainer"></div>
     </div>
   </main>
 
   <script>
     const ANATOMICAL_POINTS = [
-      { id: 'hairline', label: 'Trichion (Tr)', desc: 'Frontal hairline midpoint at skull apex.' },
+      { id: 'hairline', label: 'Trichion (Tr)', desc: 'Frontal hairline midpoint at top of forehead.' },
       { id: 'glabella', label: 'Glabella (G)', desc: 'Most prominent point between eyebrows.' },
       { id: 'nasion', label: 'Nasion (N)', desc: 'Deepest point of nasal bridge depression.' },
       { id: 'pronasale', label: 'Pronasale (Prn)', desc: 'Most anterior apex point of nasal tip.' },
@@ -252,29 +354,239 @@
 
     let currentPointIndex = 0;
     let placedPoints = {};
+    let isDragging = false;
+    let dragPointKey = null;
 
     const imgElement = document.getElementById('faceImage');
     const canvas = document.getElementById('overlayCanvas');
     const ctx = canvas.getContext('2d');
+    const fileInput = document.getElementById('fileInput');
+    const canvasContainer = document.getElementById('canvasContainer');
 
-    function init() {
-      renderPointGrid();
-      updateActivePointDisplay();
-      initCanvas();
+    function getRenderedImageBounds() {
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const imgRatio = imgElement.naturalWidth / imgElement.naturalHeight;
+      const containerRatio = containerRect.width / containerRect.height;
+
+      let renderedWidth, renderedHeight, offsetX, offsetY;
+
+      if (imgRatio > containerRatio) {
+        renderedWidth = containerRect.width;
+        renderedHeight = containerRect.width / imgRatio;
+        offsetX = 0;
+        offsetY = (containerRect.height - renderedHeight) / 2;
+      } else {
+        renderedHeight = containerRect.height;
+        renderedWidth = containerRect.height * imgRatio;
+        offsetX = (containerRect.width - renderedWidth) / 2;
+        offsetY = 0;
+      }
+
+      return {
+        left: offsetX,
+        top: offsetY,
+        width: renderedWidth,
+        height: renderedHeight,
+        naturalWidth: imgElement.naturalWidth,
+        naturalHeight: imgElement.naturalHeight
+      };
     }
 
-    function initCanvas() {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
+    function resizeCanvas() {
+      const rect = canvasContainer.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      if (imgElement.naturalWidth) {
+        document.getElementById('imageDimensions').innerText = 
+          `IMAGE: ${imgElement.naturalWidth} x ${imgElement.naturalHeight}px`;
+      }
       drawOverlays();
+    }
+
+    function drawOverlays() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!imgElement.naturalWidth) return;
+
+      const bounds = getRenderedImageBounds();
+
+      // Convert Normalized (0..1) -> Canvas Pixels
+      const toCanvasX = (normX) => bounds.left + normX * bounds.width;
+      const toCanvasY = (normY) => bounds.top + normY * bounds.height;
+
+      // Draw Key Facial Vectors if points exist
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.35)";
+      ctx.lineWidth = 1.5;
+
+      // Vertical Facial Axis
+      if (placedPoints.hairline && placedPoints.chin) {
+        ctx.beginPath();
+        ctx.moveTo(toCanvasX(placedPoints.hairline.x), toCanvasY(placedPoints.hairline.y));
+        ctx.lineTo(toCanvasX(placedPoints.chin.x), toCanvasY(placedPoints.chin.y));
+        ctx.stroke();
+      }
+
+      // Bizygomatic Axis
+      if (placedPoints.lCheek && placedPoints.rCheek) {
+        ctx.beginPath();
+        ctx.moveTo(toCanvasX(placedPoints.lCheek.x), toCanvasY(placedPoints.lCheek.y));
+        ctx.lineTo(toCanvasX(placedPoints.rCheek.x), toCanvasY(placedPoints.rCheek.y));
+        ctx.stroke();
+      }
+
+      // Bigonial Axis
+      if (placedPoints.lGonion && placedPoints.rGonion) {
+        ctx.beginPath();
+        ctx.moveTo(toCanvasX(placedPoints.lGonion.x), toCanvasY(placedPoints.lGonion.y));
+        ctx.lineTo(toCanvasX(placedPoints.rGonion.x), toCanvasY(placedPoints.rGonion.y));
+        ctx.stroke();
+      }
+
+      // Draw All Placed Landmark Points
+      Object.keys(placedPoints).forEach(id => {
+        const pt = placedPoints[id];
+        const px = toCanvasX(pt.x);
+        const py = toCanvasY(pt.y);
+        const isActive = id === ANATOMICAL_POINTS[currentPointIndex].id;
+
+        // Outer Ring
+        ctx.strokeStyle = isActive ? "#00f0ff" : "#10b981";
+        ctx.lineWidth = isActive ? 2.5 : 1.5;
+        ctx.beginPath();
+        ctx.arc(px, py, isActive ? 8 : 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner Dot
+        ctx.fillStyle = isActive ? "#00f0ff" : "#10b981";
+        ctx.beginPath();
+        ctx.arc(px, py, isActive ? 4 : 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Label Text
+        const pointDef = ANATOMICAL_POINTS.find(p => p.id === id);
+        if (pointDef) {
+          ctx.font = "11px 'Fira Code', monospace";
+          ctx.fillStyle = isActive ? "#00f0ff" : "#a7f3d0";
+          ctx.fillText(pointDef.label, px + 10, py + 4);
+        }
+      });
+
+      calculateAndRenderMetrics();
+    }
+
+    function getNormalizedCoords(e) {
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const bounds = getRenderedImageBounds();
+
+      const clickX = e.clientX - containerRect.left;
+      const clickY = e.clientY - containerRect.top;
+
+      const normX = (clickX - bounds.left) / bounds.width;
+      const normY = (clickY - bounds.top) / bounds.height;
+
+      return {
+        x: Math.max(0, Math.min(1, normX)),
+        y: Math.max(0, Math.min(1, normY)),
+        isInside: clickX >= bounds.left && clickX <= bounds.left + bounds.width &&
+                  clickY >= bounds.top && clickY <= bounds.top + bounds.height
+      };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const coords = getNormalizedCoords(e);
+      if (!coords.isInside) return;
+
+      const bounds = getRenderedImageBounds();
+      const clickX = e.clientX - canvasContainer.getBoundingClientRect().left;
+      const clickY = e.clientY - canvasContainer.getBoundingClientRect().top;
+
+      // Check if clicking existing point to drag
+      let clickedKey = null;
+      Object.keys(placedPoints).forEach(key => {
+        const pt = placedPoints[key];
+        const px = bounds.left + pt.x * bounds.width;
+        const py = bounds.top + pt.y * bounds.height;
+        if (Math.hypot(clickX - px, clickY - py) < 12) {
+          clickedKey = key;
+        }
+      });
+
+      if (clickedKey) {
+        isDragging = true;
+        dragPointKey = clickedKey;
+        const idx = ANATOMICAL_POINTS.findIndex(p => p.id === clickedKey);
+        if (idx !== -1) {
+          currentPointIndex = idx;
+          updateActivePointDisplay();
+        }
+      } else {
+        // Set point at click position
+        const activePt = ANATOMICAL_POINTS[currentPointIndex];
+        placedPoints[activePt.id] = { x: coords.x, y: coords.y };
+        isDragging = true;
+        dragPointKey = activePt.id;
+        drawOverlays();
+        renderPointGrid();
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging || !dragPointKey) return;
+      const coords = getNormalizedCoords(e);
+      placedPoints[dragPointKey] = { x: coords.x, y: coords.y };
+      drawOverlays();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      dragPointKey = null;
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadImageFile(file);
+    });
+
+    canvasContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      canvasContainer.classList.add('dragover');
+    });
+
+    canvasContainer.addEventListener('dragleave', () => {
+      canvasContainer.classList.remove('dragover');
+    });
+
+    canvasContainer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      canvasContainer.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        loadImageFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function loadImageFile(file) {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        imgElement.src = event.target.result;
+        placedPoints = {};
+        currentPointIndex = 0;
+        updateActivePointDisplay();
+      };
+      reader.readAsDataURL(file);
     }
 
     function renderPointGrid() {
       const grid = document.getElementById('pointGrid');
       grid.innerHTML = '';
+      let placedCount = 0;
+
       ANATOMICAL_POINTS.forEach((pt, index) => {
         const isPlaced = placedPoints[pt.id] !== undefined;
+        if (isPlaced) placedCount++;
         const isActive = index === currentPointIndex;
+
         grid.innerHTML += `
           <button class="point-btn ${isActive ? 'active' : ''} ${isPlaced ? 'placed' : ''}" onclick="selectPoint(${index})">
             <span>${pt.label}</span>
@@ -282,6 +594,8 @@
           </button>
         `;
       });
+
+      document.getElementById('queueProgress').innerText = `${placedCount} / ${ANATOMICAL_POINTS.length}`;
     }
 
     function updateActivePointDisplay() {
@@ -297,63 +611,91 @@
       drawOverlays();
     }
 
-    function confirmAndNext() {
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentPointIndex > 0) {
+        currentPointIndex--;
+        updateActivePointDisplay();
+        drawOverlays();
+      }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
       if (currentPointIndex < ANATOMICAL_POINTS.length - 1) {
         currentPointIndex++;
         updateActivePointDisplay();
         drawOverlays();
       }
-    }
+    });
 
-    function drawOverlays() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const rect = imgElement.getBoundingClientRect();
-      const containerRect = canvas.parentElement.getBoundingClientRect();
-      const offsetX = rect.left - containerRect.left;
-      const offsetY = rect.top - containerRect.top;
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      placedPoints = {};
+      currentPointIndex = 0;
+      updateActivePointDisplay();
+      drawOverlays();
+    });
 
-      // Draw all placed points
-      Object.keys(placedPoints).forEach(id => {
-        const pt = placedPoints[id];
-        const px = offsetX + pt.x * rect.width;
-        const py = offsetY + pt.y * rect.height;
+    document.getElementById('autoDetectBtn').addEventListener('click', async () => {
+      const status = document.getElementById('detectionStatus');
+      status.innerText = "DETECTING...";
+      status.style.color = "var(--warning)";
 
-        ctx.fillStyle = id === ANATOMICAL_POINTS[currentPointIndex].id ? '#00f0ff' : '#10b981';
-        ctx.beginPath();
-        ctx.arc(px, py, 5, 0, Math.PI * 2);
-        ctx.fill();
+      try {
+        const faceMesh = new FaceMesh({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
 
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(px, py, 7, 0, Math.PI * 2);
-        ctx.stroke();
-      });
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
 
-      calculateAndRenderMetrics();
-    }
+        faceMesh.onResults((results) => {
+          if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            const lm = results.multiFaceLandmarks[0];
 
-    canvas.addEventListener('click', (e) => {
-      const rect = imgElement.getBoundingClientRect();
-      const containerRect = canvas.parentElement.getBoundingClientRect();
-      const offsetX = rect.left - containerRect.left;
-      const offsetY = rect.top - containerRect.top;
+            placedPoints = {
+              hairline: { x: lm[10].x, y: Math.max(0, lm[10].y - 0.08) },
+              glabella: { x: lm[9].x, y: lm[9].y },
+              nasion: { x: lm[6].x, y: lm[6].y },
+              pronasale: { x: lm[1].x, y: lm[1].y },
+              subnasale: { x: lm[2].x, y: lm[2].y },
+              stomion: { x: lm[13].x, y: lm[13].y },
+              chin: { x: lm[152].x, y: lm[152].y },
+              lCheek: { x: lm[234].x, y: lm[234].y },
+              rCheek: { x: lm[454].x, y: lm[454].y },
+              lGonion: { x: lm[172].x, y: lm[172].y },
+              rGonion: { x: lm[397].x, y: lm[397].y },
+              lInnerEye: { x: lm[133].x, y: lm[133].y },
+              rInnerEye: { x: lm[362].x, y: lm[362].y },
+              lOuterEye: { x: lm[33].x, y: lm[33].y },
+              rOuterEye: { x: lm[263].x, y: lm[263].y }
+            };
 
-      const normX = (e.clientX - containerRect.left - offsetX) / rect.width;
-      const normY = (e.clientY - containerRect.top - offsetY) / rect.height;
+            status.innerText = "SUCCESS";
+            status.style.color = "var(--success)";
+            drawOverlays();
+            renderPointGrid();
+          } else {
+            status.innerText = "NO FACE FOUND";
+            status.style.color = "var(--warning)";
+          }
+        });
 
-      if (normX >= 0 && normX <= 1 && normY >= 0 && normY <= 1) {
-        const activePt = ANATOMICAL_POINTS[currentPointIndex];
-        placedPoints[activePt.id] = { x: normX, y: normY };
-        drawOverlays();
-        renderPointGrid();
+        await faceMesh.send({ image: imgElement });
+      } catch (err) {
+        status.innerText = "ERROR";
+        status.style.color = "var(--warning)";
+        console.error(err);
       }
     });
 
     function calculateAndRenderMetrics() {
       const container = document.getElementById('metricContainer');
       container.innerHTML = '';
-      const dist = (p1, p2) => p1 && p2 ? Math.hypot(p1.x - p2.x, p1.y - p2.y) : null;
+
+      const dist = (p1, p2) => (p1 && p2) ? Math.hypot(p1.x - p2.x, p1.y - p2.y) : null;
 
       const fwhr = dist(placedPoints.lCheek, placedPoints.rCheek) && dist(placedPoints.nasion, placedPoints.stomion)
         ? (dist(placedPoints.lCheek, placedPoints.rCheek) / dist(placedPoints.nasion, placedPoints.stomion)).toFixed(2)
@@ -363,40 +705,41 @@
         ? ((dist(placedPoints.lGonion, placedPoints.rGonion) / dist(placedPoints.lCheek, placedPoints.rCheek)) * 100).toFixed(1)
         : '--';
 
-      container.innerHTML = `
-        <div class="metric-card">
-          <div>
-            <div class="metric-name">Upper FWHR</div>
-            <div style="font-size:0.7rem; color:var(--text-muted);">Target: 1.90 - 2.00 ratio</div>
+      const intercanthal = dist(placedPoints.lInnerEye, placedPoints.rInnerEye) && dist(placedPoints.lOuterEye, placedPoints.lInnerEye)
+        ? (dist(placedPoints.lInnerEye, placedPoints.rInnerEye) / dist(placedPoints.lOuterEye, placedPoints.lInnerEye)).toFixed(2)
+        : '--';
+
+      const metrics = [
+        { name: "Upper FWHR", val: fwhr, ideal: "1.90 - 2.00 ratio" },
+        { name: "Bigonial / Bizygomatic", val: bigonial + (bigonial !== '--' ? '%' : ''), ideal: "86.0 - 90.0 %" },
+        { name: "Intercanthal Index", val: intercanthal, ideal: "1.00 - 1.05 ratio" }
+      ];
+
+      metrics.forEach(m => {
+        container.innerHTML += `
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">${m.name}</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Ideal: ${m.ideal}</div>
+            </div>
+            <div class="metric-val">${m.val}</div>
           </div>
-          <div class="metric-val">${fwhr}</div>
-        </div>
-        <div class="metric-card">
-          <div>
-            <div class="metric-name">Bigonial / Bizygomatic</div>
-            <div style="font-size:0.7rem; color:var(--text-muted);">Target: 86.0 - 90.0 %</div>
-          </div>
-          <div class="metric-val">${bigonial} ${bigonial !== '--' ? '%' : ''}</div>
-        </div>
-      `;
+        `;
+      });
     }
 
-    function handleFileUpload(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          imgElement.src = event.target.result;
-          placedPoints = {};
-          currentPointIndex = 0;
-          updateActivePointDisplay();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
+    window.addEventListener('resize', resizeCanvas);
+    imgElement.onload = () => {
+      resizeCanvas();
+      renderPointGrid();
+      updateActivePointDisplay();
+    };
 
-    window.addEventListener('resize', initCanvas);
-    imgElement.onload = init;
+    if (imgElement.complete) {
+      resizeCanvas();
+      renderPointGrid();
+      updateActivePointDisplay();
+    }
   </script>
 </body>
 </html>
