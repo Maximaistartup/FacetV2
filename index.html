@@ -6,7 +6,7 @@
   <title>FACET // Facial Geometry Engine</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
   
-  <!-- MediaPipe Libraries for Auto-Detection -->
+  <!-- MediaPipe Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
   
@@ -39,13 +39,12 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
     }
 
     header {
       background: var(--panel-bg);
       border-bottom: 1px solid var(--panel-border);
-      padding: 0.85rem 1.5rem;
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -53,31 +52,42 @@
     .brand {
       font-family: var(--font-mono);
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       letter-spacing: 2px;
       color: var(--accent-cyan);
+    }
+    .view-switch {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      background: var(--bg-dark);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 2px;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .view-btn.active {
+      background: var(--panel-border);
+      color: var(--accent-cyan);
     }
 
     main {
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 420px;
-      gap: 1.25rem;
-      padding: 1.25rem;
+      gap: 1.5rem;
+      padding: 1.5rem;
       max-width: 1600px;
       margin: 0 auto;
       width: 100%;
-      height: calc(100vh - 65px);
-    }
-
-    @media (max-width: 1024px) {
-      main {
-        grid-template-columns: 1fr;
-        height: auto;
-      }
     }
 
     .viewport-panel {
@@ -88,19 +98,6 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-      min-height: 500px;
-    }
-
-    .viewport-toolbar {
-      background: rgba(0,0,0,0.3);
-      padding: 0.5rem 1rem;
-      border-bottom: 1px solid var(--panel-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
     }
 
     .canvas-container {
@@ -110,16 +107,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      user-select: none;
+      min-height: 600px;
+      cursor: crosshair;
     }
 
     #faceImage {
       max-width: 100%;
-      max-height: 100%;
+      max-height: 70vh;
       object-fit: contain;
       display: block;
-      pointer-events: none;
     }
 
     #overlayCanvas {
@@ -128,60 +124,43 @@
       left: 0;
       width: 100%;
       height: 100%;
-      cursor: crosshair;
     }
 
     .control-panel {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: 8px;
-      padding: 1.25rem;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
       overflow-y: auto;
+      max-height: 85vh;
     }
 
     .panel-title {
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--accent-cyan);
       border-bottom: 1px solid var(--panel-border);
-      padding-bottom: 0.4rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding-bottom: 0.5rem;
     }
 
-    .active-point-banner {
-      background: rgba(0, 240, 255, 0.08);
-      border: 1px solid var(--accent-cyan);
-      padding: 0.75rem;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-    }
-    .point-name { color: var(--accent-cyan); font-weight: 700; font-size: 0.95rem; }
-    .point-desc { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.2rem; }
-
-    .btn-group { display: flex; gap: 0.5rem; }
+    .btn-group { display: flex; gap: 0.75rem; }
     .btn {
       flex: 1;
       background: var(--panel-border);
       color: var(--text-main);
       border: 1px solid transparent;
-      padding: 0.6rem 0.8rem;
+      padding: 0.65rem 0.85rem;
       font-family: var(--font-mono);
       font-size: 0.75rem;
       cursor: pointer;
       border-radius: 4px;
       transition: all 0.2s;
       text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
     }
     .btn-primary {
       background: rgba(0, 240, 255, 0.15);
@@ -191,28 +170,27 @@
     .btn-primary:hover {
       background: rgba(0, 240, 255, 0.25);
     }
-    .btn-success {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: var(--success);
-      color: var(--success);
+
+    .active-point-banner {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--accent-cyan);
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
     }
-    .btn-success:hover {
-      background: rgba(16, 185, 129, 0.25);
-    }
+    .point-name { color: var(--accent-cyan); font-weight: 700; font-size: 0.9rem; }
+    .point-desc { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem; }
 
     .point-selector-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.4rem;
-      max-height: 220px;
-      overflow-y: auto;
-      padding-right: 0.2rem;
+      gap: 0.5rem;
     }
     .point-btn {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--panel-border);
       color: var(--text-muted);
-      padding: 0.45rem 0.6rem;
+      padding: 0.5rem;
       font-family: var(--font-mono);
       font-size: 0.7rem;
       border-radius: 4px;
@@ -221,20 +199,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: all 0.15s ease;
-    }
-    .point-btn:hover {
-      border-color: rgba(0, 240, 255, 0.4);
-      color: var(--text-main);
     }
     .point-btn.active {
       border-color: var(--accent-cyan);
       color: var(--accent-cyan);
-      background: rgba(0, 240, 255, 0.08);
-      font-weight: 600;
+      background: rgba(0, 240, 255, 0.05);
     }
     .point-btn.placed {
-      border-color: rgba(16, 185, 129, 0.4);
+      border-color: var(--success);
       color: var(--success);
     }
 
@@ -246,70 +218,31 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 0.5rem;
     }
     .metric-name { font-size: 0.8rem; font-weight: 500; }
-    .metric-val { font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600; font-size: 0.95rem; }
-
-    .drop-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(10, 13, 18, 0.85);
-      border: 2px dashed var(--accent-cyan);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-      color: var(--accent-cyan);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .canvas-container.dragover .drop-overlay {
-      opacity: 1;
-    }
+    .metric-val { font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">
-      <span>📐</span> FACET // FACIAL_GEOMETRY_ENGINE
-    </div>
-    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">
-      PRECISION_MODE: V2.4_FIXED
+    <div class="brand">FACET // GEOMETRY_ENGINE</div>
+    <div class="view-switch">
+      <button class="view-btn active" id="btnFrontView" onclick="setViewMode('front')">FRONTAL VIEW</button>
+      <button class="view-btn" id="btnProfileView" onclick="setViewMode('profile')">SIDE PROFILE</button>
     </div>
   </header>
 
   <main>
-    <!-- Viewport Panel -->
     <div class="viewport-panel">
-      <div class="viewport-toolbar">
-        <span id="imageDimensions">IMAGE: LOADING...</span>
-        <span>DRAG POINTS OR CLICK TO PLACE</span>
-      </div>
       <div class="canvas-container" id="canvasContainer">
-        <img id="faceImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80" crossorigin="anonymous" alt="Target Subject">
+        <img id="faceImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80" crossorigin="anonymous" alt="Calibrated Subject Target">
         <canvas id="overlayCanvas"></canvas>
-        <div class="drop-overlay">DROP IMAGE FILE HERE</div>
       </div>
     </div>
 
-    <!-- Controls Panel -->
     <div class="control-panel">
-      <div class="panel-title">
-        <span>IMAGE_SOURCE</span>
-        <span id="detectionStatus" style="color: var(--text-muted); font-size: 0.7rem;">READY</span>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-primary" id="uploadBtn">
-          <span>📁</span> UPLOAD PHOTO
-        </button>
-        <button class="btn btn-success" id="autoDetectBtn">
-          <span>✨</span> AUTO-DETECT
-        </button>
-      </div>
-      <input type="file" id="fileInput" accept="image/*" style="display:none;">
-
       <div class="panel-title">ACTIVE_TARGET_LANDMARK</div>
       <div class="active-point-banner">
         <div class="point-name" id="activePointTitle">Trichion (Tr)</div>
@@ -317,276 +250,118 @@
       </div>
 
       <div class="btn-group">
-        <button class="btn" id="prevBtn">◄ PREV</button>
-        <button class="btn btn-primary" id="nextBtn">NEXT ►</button>
-        <button class="btn" id="resetBtn">RESET ALL</button>
+        <button class="btn btn-primary" onclick="autoDetectLandmarks()">AUTO-DETECT AI</button>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">UPLOAD PHOTO</button>
       </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(event)">
 
-      <div class="panel-title">
-        <span>LANDMARK_QUEUE</span>
-        <span id="queueProgress" style="color: var(--text-muted); font-size: 0.7rem;">0 / 15</span>
-      </div>
+      <div class="panel-title">LANDMARK_QUEUE</div>
       <div class="point-selector-grid" id="pointGrid"></div>
 
-      <div class="panel-title">QUANTITATIVE_METRICS</div>
-      <div class="metric-list" id="metricContainer"></div>
+      <div class="panel-title" id="metricsHeader">FRONTAL_METRICS</div>
+      <div id="metricContainer"></div>
     </div>
   </main>
 
   <script>
-    const ANATOMICAL_POINTS = [
-      { id: 'hairline', label: 'Trichion (Tr)', desc: 'Frontal hairline midpoint at top of forehead.' },
-      { id: 'glabella', label: 'Glabella (G)', desc: 'Most prominent point between eyebrows.' },
-      { id: 'nasion', label: 'Nasion (N)', desc: 'Deepest point of nasal bridge depression.' },
-      { id: 'pronasale', label: 'Pronasale (Prn)', desc: 'Most anterior apex point of nasal tip.' },
-      { id: 'subnasale', label: 'Subnasale (Sn)', desc: 'Junction of nasal septum and upper lip.' },
-      { id: 'stomion', label: 'Stomion (Sto)', desc: 'Midpoint of labial fissure (lip junction).' },
-      { id: 'chin', label: 'Menton (Me)', desc: 'Lowest inferior point on soft tissue chin.' },
-      { id: 'lCheek', label: 'L Zygion (Zy_L)', desc: 'Outermost lateral edge of left cheekbone.' },
-      { id: 'rCheek', label: 'R Zygion (Zy_R)', desc: 'Outermost lateral edge of right cheekbone.' },
-      { id: 'lGonion', label: 'L Gonion (Go_L)', desc: 'Outermost angle point of left jaw apex.' },
-      { id: 'rGonion', label: 'R Gonion (Go_R)', desc: 'Outermost angle point of right jaw apex.' },
-      { id: 'lInnerEye', label: 'L Medial Canthus', desc: 'Inner corner junction of left eye.' },
-      { id: 'rInnerEye', label: 'R Medial Canthus', desc: 'Inner corner junction of right eye.' },
-      { id: 'lOuterEye', label: 'L Lateral Canthus', desc: 'Outer corner junction of left eye.' },
-      { id: 'rOuterEye', label: 'R Lateral Canthus', desc: 'Outer corner junction of right eye.' }
-    ];
+    const SCHEMAS = {
+      front: [
+        { id: 'hairline', label: 'Trichion (Tr)', desc: 'Frontal hairline apex.' },
+        { id: 'glabella', label: 'Glabella (G)', desc: 'Eyebrow midpoint apex.' },
+        { id: 'nasion', label: 'Nasion (N)', desc: 'Nasal bridge root origin.' },
+        { id: 'pronasale', label: 'Pronasale (Prn)', desc: 'Tip apex of nose.' },
+        { id: 'subnasale', label: 'Subnasale (Sn)', desc: 'Base of nasal septum.' },
+        { id: 'stomion', label: 'Stomion (Sto)', desc: 'Center lip contact line.' },
+        { id: 'chin', label: 'Menton (Me)', desc: 'Bottommost chin edge.' },
+        { id: 'lCheek', label: 'L Zygion (Zy_L)', desc: 'Outer left cheekbone edge.' },
+        { id: 'rCheek', label: 'R Zygion (Zy_R)', desc: 'Outer right cheekbone edge.' },
+        { id: 'lGonion', label: 'L Gonion (Go_L)', desc: 'Left jaw corner angle.' },
+        { id: 'rGonion', label: 'R Gonion (Go_R)', desc: 'Right jaw corner angle.' },
+        { id: 'lInnerEye', label: 'L Medial Canthus', desc: 'Inner corner of left eye.' },
+        { id: 'rInnerEye', label: 'R Medial Canthus', desc: 'Inner corner of right eye.' },
+        { id: 'lOuterEye', label: 'L Lateral Canthus', desc: 'Outer corner of left eye.' },
+        { id: 'rOuterEye', label: 'R Lateral Canthus', desc: 'Outer corner of right eye.' }
+      ],
+      profile: [
+        { id: 'nasion', label: 'Nasion (N)', desc: 'Deepest point of nasal depression.' },
+        { id: 'rhinion', label: 'Rhinion (Rhi)', desc: 'Transition point from bone to cartilage.' },
+        { id: 'pronasale', label: 'Pronasale (Prn)', desc: 'Most anterior tip of the nose.' },
+        { id: 'subnasale', label: 'Subnasale (Sn)', desc: 'Junction of nose and upper lip.' },
+        { id: 'labraleSup', label: 'Labrale Sup (Ls)', desc: 'Most prominent point of upper lip.' },
+        { id: 'labraleInf', label: 'Labrale Inf (Li)', desc: 'Most prominent point of lower lip.' },
+        { id: 'pogonion', label: 'Pogonion (Pog)', desc: 'Most anterior point of soft tissue chin.' },
+        { id: 'menton', label: 'Menton (Me)', desc: 'Lowest inferior point of the chin.' },
+        { id: 'glabella', label: 'Glabella (G)', desc: 'Most prominent point of forehead.' },
+        { id: 'cervical', label: 'Cervical (C)', desc: 'Inner neck-to-chin transition angle.' }
+      ]
+    };
 
+    let viewMode = 'front';
     let currentPointIndex = 0;
-    let placedPoints = {};
-    let isDragging = false;
-    let dragPointKey = null;
+    let placedPoints = { front: {}, profile: {} };
+    let draggingPoint = null;
 
     const imgElement = document.getElementById('faceImage');
     const canvas = document.getElementById('overlayCanvas');
     const ctx = canvas.getContext('2d');
-    const fileInput = document.getElementById('fileInput');
-    const canvasContainer = document.getElementById('canvasContainer');
 
-    function getRenderedImageBounds() {
-      const containerRect = canvasContainer.getBoundingClientRect();
-      const imgRatio = imgElement.naturalWidth / imgElement.naturalHeight;
-      const containerRatio = containerRect.width / containerRect.height;
+    // Default Images
+    const DEFAULT_IMAGES = {
+      front: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80",
+      profile: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1000&q=80"
+    };
 
-      let renderedWidth, renderedHeight, offsetX, offsetY;
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById('btnFrontView').classList.toggle('active', mode === 'front');
+      document.getElementById('btnProfileView').classList.toggle('active', mode === 'profile');
+      document.getElementById('metricsHeader').innerText = mode === 'front' ? 'FRONTAL_METRICS' : 'PROFILE_METRICS';
+      
+      currentPointIndex = 0;
+      imgElement.src = DEFAULT_IMAGES[mode];
+      renderPointGrid();
+      updateActivePointDisplay();
+    }
 
-      if (imgRatio > containerRatio) {
-        renderedWidth = containerRect.width;
-        renderedHeight = containerRect.width / imgRatio;
-        offsetX = 0;
-        offsetY = (containerRect.height - renderedHeight) / 2;
+    function getImageRenderRect() {
+      const container = canvas.parentElement;
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const imgW = imgElement.naturalWidth || cW;
+      const imgH = imgElement.naturalHeight || cH;
+
+      const imgRatio = imgW / imgH;
+      const containerRatio = cW / cH;
+
+      let rW, rH;
+      if (containerRatio > imgRatio) {
+        rH = cH;
+        rW = cH * imgRatio;
       } else {
-        renderedHeight = containerRect.height;
-        renderedWidth = containerRect.height * imgRatio;
-        offsetX = (containerRect.width - renderedWidth) / 2;
-        offsetY = 0;
+        rW = cW;
+        rH = cW / imgRatio;
       }
 
-      return {
-        left: offsetX,
-        top: offsetY,
-        width: renderedWidth,
-        height: renderedHeight,
-        naturalWidth: imgElement.naturalWidth,
-        naturalHeight: imgElement.naturalHeight
-      };
+      const oX = (cW - rW) / 2;
+      const oY = (cH - rH) / 2;
+
+      return { x: oX, y: oY, width: rW, height: rH };
     }
 
-    function resizeCanvas() {
-      const rect = canvasContainer.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      if (imgElement.naturalWidth) {
-        document.getElementById('imageDimensions').innerText = 
-          `IMAGE: ${imgElement.naturalWidth} x ${imgElement.naturalHeight}px`;
-      }
+    function initCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
       drawOverlays();
-    }
-
-    function drawOverlays() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!imgElement.naturalWidth) return;
-
-      const bounds = getRenderedImageBounds();
-
-      // Convert Normalized (0..1) -> Canvas Pixels
-      const toCanvasX = (normX) => bounds.left + normX * bounds.width;
-      const toCanvasY = (normY) => bounds.top + normY * bounds.height;
-
-      // Draw Key Facial Vectors if points exist
-      ctx.strokeStyle = "rgba(0, 240, 255, 0.35)";
-      ctx.lineWidth = 1.5;
-
-      // Vertical Facial Axis
-      if (placedPoints.hairline && placedPoints.chin) {
-        ctx.beginPath();
-        ctx.moveTo(toCanvasX(placedPoints.hairline.x), toCanvasY(placedPoints.hairline.y));
-        ctx.lineTo(toCanvasX(placedPoints.chin.x), toCanvasY(placedPoints.chin.y));
-        ctx.stroke();
-      }
-
-      // Bizygomatic Axis
-      if (placedPoints.lCheek && placedPoints.rCheek) {
-        ctx.beginPath();
-        ctx.moveTo(toCanvasX(placedPoints.lCheek.x), toCanvasY(placedPoints.lCheek.y));
-        ctx.lineTo(toCanvasX(placedPoints.rCheek.x), toCanvasY(placedPoints.rCheek.y));
-        ctx.stroke();
-      }
-
-      // Bigonial Axis
-      if (placedPoints.lGonion && placedPoints.rGonion) {
-        ctx.beginPath();
-        ctx.moveTo(toCanvasX(placedPoints.lGonion.x), toCanvasY(placedPoints.lGonion.y));
-        ctx.lineTo(toCanvasX(placedPoints.rGonion.x), toCanvasY(placedPoints.rGonion.y));
-        ctx.stroke();
-      }
-
-      // Draw All Placed Landmark Points
-      Object.keys(placedPoints).forEach(id => {
-        const pt = placedPoints[id];
-        const px = toCanvasX(pt.x);
-        const py = toCanvasY(pt.y);
-        const isActive = id === ANATOMICAL_POINTS[currentPointIndex].id;
-
-        // Outer Ring
-        ctx.strokeStyle = isActive ? "#00f0ff" : "#10b981";
-        ctx.lineWidth = isActive ? 2.5 : 1.5;
-        ctx.beginPath();
-        ctx.arc(px, py, isActive ? 8 : 6, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Inner Dot
-        ctx.fillStyle = isActive ? "#00f0ff" : "#10b981";
-        ctx.beginPath();
-        ctx.arc(px, py, isActive ? 4 : 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Label Text
-        const pointDef = ANATOMICAL_POINTS.find(p => p.id === id);
-        if (pointDef) {
-          ctx.font = "11px 'Fira Code', monospace";
-          ctx.fillStyle = isActive ? "#00f0ff" : "#a7f3d0";
-          ctx.fillText(pointDef.label, px + 10, py + 4);
-        }
-      });
-
-      calculateAndRenderMetrics();
-    }
-
-    function getNormalizedCoords(e) {
-      const containerRect = canvasContainer.getBoundingClientRect();
-      const bounds = getRenderedImageBounds();
-
-      const clickX = e.clientX - containerRect.left;
-      const clickY = e.clientY - containerRect.top;
-
-      const normX = (clickX - bounds.left) / bounds.width;
-      const normY = (clickY - bounds.top) / bounds.height;
-
-      return {
-        x: Math.max(0, Math.min(1, normX)),
-        y: Math.max(0, Math.min(1, normY)),
-        isInside: clickX >= bounds.left && clickX <= bounds.left + bounds.width &&
-                  clickY >= bounds.top && clickY <= bounds.top + bounds.height
-      };
-    }
-
-    canvas.addEventListener('mousedown', (e) => {
-      const coords = getNormalizedCoords(e);
-      if (!coords.isInside) return;
-
-      const bounds = getRenderedImageBounds();
-      const clickX = e.clientX - canvasContainer.getBoundingClientRect().left;
-      const clickY = e.clientY - canvasContainer.getBoundingClientRect().top;
-
-      // Check if clicking existing point to drag
-      let clickedKey = null;
-      Object.keys(placedPoints).forEach(key => {
-        const pt = placedPoints[key];
-        const px = bounds.left + pt.x * bounds.width;
-        const py = bounds.top + pt.y * bounds.height;
-        if (Math.hypot(clickX - px, clickY - py) < 12) {
-          clickedKey = key;
-        }
-      });
-
-      if (clickedKey) {
-        isDragging = true;
-        dragPointKey = clickedKey;
-        const idx = ANATOMICAL_POINTS.findIndex(p => p.id === clickedKey);
-        if (idx !== -1) {
-          currentPointIndex = idx;
-          updateActivePointDisplay();
-        }
-      } else {
-        // Set point at click position
-        const activePt = ANATOMICAL_POINTS[currentPointIndex];
-        placedPoints[activePt.id] = { x: coords.x, y: coords.y };
-        isDragging = true;
-        dragPointKey = activePt.id;
-        drawOverlays();
-        renderPointGrid();
-      }
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (!isDragging || !dragPointKey) return;
-      const coords = getNormalizedCoords(e);
-      placedPoints[dragPointKey] = { x: coords.x, y: coords.y };
-      drawOverlays();
-    });
-
-    window.addEventListener('mouseup', () => {
-      isDragging = false;
-      dragPointKey = null;
-    });
-
-    document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) loadImageFile(file);
-    });
-
-    canvasContainer.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      canvasContainer.classList.add('dragover');
-    });
-
-    canvasContainer.addEventListener('dragleave', () => {
-      canvasContainer.classList.remove('dragover');
-    });
-
-    canvasContainer.addEventListener('drop', (e) => {
-      e.preventDefault();
-      canvasContainer.classList.remove('dragover');
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        loadImageFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    function loadImageFile(file) {
-      if (!file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        imgElement.src = event.target.result;
-        placedPoints = {};
-        currentPointIndex = 0;
-        updateActivePointDisplay();
-      };
-      reader.readAsDataURL(file);
     }
 
     function renderPointGrid() {
       const grid = document.getElementById('pointGrid');
       grid.innerHTML = '';
-      let placedCount = 0;
-
-      ANATOMICAL_POINTS.forEach((pt, index) => {
-        const isPlaced = placedPoints[pt.id] !== undefined;
-        if (isPlaced) placedCount++;
+      const currentSchema = SCHEMAS[viewMode];
+      
+      currentSchema.forEach((pt, index) => {
+        const isPlaced = placedPoints[viewMode][pt.id] !== undefined;
         const isActive = index === currentPointIndex;
-
         grid.innerHTML += `
           <button class="point-btn ${isActive ? 'active' : ''} ${isPlaced ? 'placed' : ''}" onclick="selectPoint(${index})">
             <span>${pt.label}</span>
@@ -594,12 +369,10 @@
           </button>
         `;
       });
-
-      document.getElementById('queueProgress').innerText = `${placedCount} / ${ANATOMICAL_POINTS.length}`;
     }
 
     function updateActivePointDisplay() {
-      const pt = ANATOMICAL_POINTS[currentPointIndex];
+      const pt = SCHEMAS[viewMode][currentPointIndex];
       document.getElementById('activePointTitle').innerText = pt.label;
       document.getElementById('activePointInstruction').innerText = pt.desc;
       renderPointGrid();
@@ -611,52 +384,207 @@
       drawOverlays();
     }
 
-    document.getElementById('prevBtn').addEventListener('click', () => {
-      if (currentPointIndex > 0) {
-        currentPointIndex--;
-        updateActivePointDisplay();
-        drawOverlays();
+    function drawOverlays() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const rect = getImageRenderRect();
+      const points = placedPoints[viewMode];
+      const activeSchema = SCHEMAS[viewMode];
+
+      // Draw Connections based on View
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+
+      if (viewMode === 'front') {
+        if (points.hairline && points.chin) drawLine(points.hairline, points.chin, rect);
+        if (points.lCheek && points.rCheek) drawLine(points.lCheek, points.rCheek, rect);
+        if (points.lGonion && points.rGonion) drawLine(points.lGonion, points.rGonion, rect);
+      } else {
+        if (points.nasion && points.pronasale) drawLine(points.nasion, points.pronasale, rect);
+        if (points.pronasale && points.subnasale) drawLine(points.pronasale, points.subnasale, rect);
+        if (points.subnasale && points.labraleSup) drawLine(points.subnasale, points.labraleSup, rect);
+        if (points.pronasale && points.pogonion) drawLine(points.pronasale, points.pogonion, rect, "rgba(255, 165, 0, 0.5)"); // E-Line
+      }
+
+      // Draw Nodes
+      Object.keys(points).forEach(id => {
+        const pt = points[id];
+        const px = rect.x + pt.x * rect.width;
+        const py = rect.y + pt.y * rect.height;
+
+        const isActive = activeSchema[currentPointIndex] && activeSchema[currentPointIndex].id === id;
+
+        ctx.fillStyle = isActive ? "#00f0ff" : "#10b981";
+        ctx.beginPath();
+        ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.font = "10px Fira Code";
+        ctx.fillStyle = "#00f0ff";
+        const label = activeSchema.find(s => s.id === id)?.label || id;
+        ctx.fillText(label, px + 10, py + 3);
+      });
+
+      calculateAndRenderMetrics();
+    }
+
+    function drawLine(p1, p2, rect, style) {
+      ctx.strokeStyle = style || "rgba(0, 240, 255, 0.4)";
+      ctx.beginPath();
+      ctx.moveTo(rect.x + p1.x * rect.width, rect.y + p1.y * rect.height);
+      ctx.lineTo(rect.x + p2.x * rect.width, rect.y + p2.y * rect.height);
+      ctx.stroke();
+    }
+
+    // Canvas Mouse Click & Drag Logic
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = getImageRenderRect();
+      const cRect = canvas.getBoundingClientRect();
+      const mX = e.clientX - cRect.left;
+      const mY = e.clientY - cRect.top;
+
+      const points = placedPoints[viewMode];
+      let clickedNode = null;
+
+      Object.keys(points).forEach(id => {
+        const pt = points[id];
+        const px = rect.x + pt.x * rect.width;
+        const py = rect.y + pt.y * rect.height;
+
+        if (Math.hypot(mX - px, mY - py) < 12) {
+          clickedNode = id;
+        }
+      });
+
+      if (clickedNode) {
+        draggingPoint = clickedNode;
+      } else {
+        const normX = (mX - rect.x) / rect.width;
+        const normY = (mY - rect.y) / rect.height;
+
+        if (normX >= 0 && normX <= 1 && normY >= 0 && normY <= 1) {
+          const activePt = SCHEMAS[viewMode][currentPointIndex];
+          placedPoints[viewMode][activePt.id] = { x: normX, y: normY };
+          if (currentPointIndex < SCHEMAS[viewMode].length - 1) {
+            currentPointIndex++;
+          }
+          updateActivePointDisplay();
+          drawOverlays();
+        }
       }
     });
 
-    document.getElementById('nextBtn').addEventListener('click', () => {
-      if (currentPointIndex < ANATOMICAL_POINTS.length - 1) {
-        currentPointIndex++;
-        updateActivePointDisplay();
-        drawOverlays();
-      }
-    });
+    canvas.addEventListener('mousemove', (e) => {
+      if (!draggingPoint) return;
+      const rect = getImageRenderRect();
+      const cRect = canvas.getBoundingClientRect();
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      placedPoints = {};
-      currentPointIndex = 0;
-      updateActivePointDisplay();
+      const normX = Math.max(0, Math.min(1, (e.clientX - cRect.left - rect.x) / rect.width));
+      const normY = Math.max(0, Math.min(1, (e.clientY - cRect.top - rect.y) / rect.height));
+
+      placedPoints[viewMode][draggingPoint] = { x: normX, y: normY };
       drawOverlays();
     });
 
-    document.getElementById('autoDetectBtn').addEventListener('click', async () => {
-      const status = document.getElementById('detectionStatus');
-      status.innerText = "DETECTING...";
-      status.style.color = "var(--warning)";
+    window.addEventListener('mouseup', () => draggingPoint = null);
 
-      try {
-        const faceMesh = new FaceMesh({
-          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-        });
+    // Dynamic Metric Math Engine
+    function calculateAndRenderMetrics() {
+      const container = document.getElementById('metricContainer');
+      container.innerHTML = '';
+      const pts = placedPoints[viewMode];
 
-        faceMesh.setOptions({
-          maxNumFaces: 1,
-          refineLandmarks: true,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5
-        });
+      const dist = (p1, p2) => p1 && p2 ? Math.hypot(p1.x - p2.x, p1.y - p2.y) : null;
+      const angle = (p1, p2, p3) => {
+        if (!p1 || !p2 || !p3) return null;
+        const a = dist(p2, p3);
+        const b = dist(p1, p2);
+        const c = dist(p1, p3);
+        const deg = Math.acos((b*b + a*a - c*c) / (2*b*a)) * (180 / Math.PI);
+        return isNaN(deg) ? null : deg.toFixed(1);
+      };
 
-        faceMesh.onResults((results) => {
-          if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-            const lm = results.multiFaceLandmarks[0];
+      if (viewMode === 'front') {
+        const fwhr = dist(pts.lCheek, pts.rCheek) && dist(pts.nasion, pts.stomion)
+          ? (dist(pts.lCheek, pts.rCheek) / dist(pts.nasion, pts.stomion)).toFixed(2) : '--';
 
-            placedPoints = {
-              hairline: { x: lm[10].x, y: Math.max(0, lm[10].y - 0.08) },
+        const bigonial = dist(pts.lGonion, pts.rGonion) && dist(pts.lCheek, pts.rCheek)
+          ? ((dist(pts.lGonion, pts.rGonion) / dist(pts.lCheek, pts.rCheek)) * 100).toFixed(1) : '--';
+
+        const intercanthal = dist(pts.lInnerEye, pts.rInnerEye) && dist(pts.lOuterEye, pts.lInnerEye)
+          ? (dist(pts.lInnerEye, pts.rInnerEye) / dist(pts.lOuterEye, pts.lInnerEye)).toFixed(2) : '--';
+
+        container.innerHTML = `
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">Upper FWHR</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">Ideal: 1.90 - 2.00 ratio</div>
+            </div>
+            <div class="metric-val">${fwhr}</div>
+          </div>
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">Bigonial / Bizygomatic</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">Ideal: 86.0 - 90.0 %</div>
+            </div>
+            <div class="metric-val">${bigonial} ${bigonial !== '--' ? '%' : ''}</div>
+          </div>
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">Intercanthal Index</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">Ideal: 1.00 - 1.05 ratio</div>
+            </div>
+            <div class="metric-val">${intercanthal}</div>
+          </div>
+        `;
+      } else {
+        const nasofacial = angle(pts.glabella, pts.nasion, pts.pronasale) || '--';
+        const nasolabial = angle(pts.pronasale, pts.subnasale, pts.labraleSup) || '--';
+        const convexity = angle(pts.glabella, pts.subnasale, pts.pogonion) || '--';
+
+        container.innerHTML = `
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">Nasofacial Angle</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">Ideal: 30.0° - 40.0°</div>
+            </div>
+            <div class="metric-val">${nasofacial}${nasofacial !== '--' ? '°' : ''}</div>
+          </div>
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">Nasolabial Angle</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">Ideal: 90.0° - 105.0°</div>
+            </div>
+            <div class="metric-val">${nasolabial}${nasolabial !== '--' ? '°' : ''}</div>
+          </div>
+          <div class="metric-card">
+            <div>
+              <div class="metric-name">Facial Convexity</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">Ideal: 165.0° - 175.0°</div>
+            </div>
+            <div class="metric-val">${convexity}${convexity !== '--' ? '°' : ''}</div>
+          </div>
+        `;
+      }
+    }
+
+    // MediaPipe Auto Detection
+    async function autoDetectLandmarks() {
+      const faceMesh = new FaceMesh({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+      });
+      faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+      faceMesh.onResults((results) => {
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+          const lm = results.multiFaceLandmarks[0];
+          if (viewMode === 'front') {
+            placedPoints.front = {
+              hairline: { x: lm[10].x, y: lm[10].y },
               glabella: { x: lm[9].x, y: lm[9].y },
               nasion: { x: lm[6].x, y: lm[6].y },
               pronasale: { x: lm[1].x, y: lm[1].y },
@@ -665,81 +593,52 @@
               chin: { x: lm[152].x, y: lm[152].y },
               lCheek: { x: lm[234].x, y: lm[234].y },
               rCheek: { x: lm[454].x, y: lm[454].y },
-              lGonion: { x: lm[172].x, y: lm[172].y },
-              rGonion: { x: lm[397].x, y: lm[397].y },
+              lGonion: { x: lm[132].x, y: lm[132].y },
+              rGonion: { x: lm[361].x, y: lm[361].y },
               lInnerEye: { x: lm[133].x, y: lm[133].y },
               rInnerEye: { x: lm[362].x, y: lm[362].y },
               lOuterEye: { x: lm[33].x, y: lm[33].y },
               rOuterEye: { x: lm[263].x, y: lm[263].y }
             };
-
-            status.innerText = "SUCCESS";
-            status.style.color = "var(--success)";
-            drawOverlays();
-            renderPointGrid();
           } else {
-            status.innerText = "NO FACE FOUND";
-            status.style.color = "var(--warning)";
+            placedPoints.profile = {
+              nasion: { x: lm[6].x, y: lm[6].y },
+              rhinion: { x: lm[197].x, y: lm[197].y },
+              pronasale: { x: lm[1].x, y: lm[1].y },
+              subnasale: { x: lm[2].x, y: lm[2].y },
+              labraleSup: { x: lm[0].x, y: lm[0].y },
+              labraleInf: { x: lm[17].x, y: lm[17].y },
+              pogonion: { x: lm[199].x, y: lm[199].y },
+              menton: { x: lm[152].x, y: lm[152].y },
+              glabella: { x: lm[9].x, y: lm[9].y },
+              cervical: { x: lm[200].x, y: lm[200].y }
+            };
           }
-        });
-
-        await faceMesh.send({ image: imgElement });
-      } catch (err) {
-        status.innerText = "ERROR";
-        status.style.color = "var(--warning)";
-        console.error(err);
-      }
-    });
-
-    function calculateAndRenderMetrics() {
-      const container = document.getElementById('metricContainer');
-      container.innerHTML = '';
-
-      const dist = (p1, p2) => (p1 && p2) ? Math.hypot(p1.x - p2.x, p1.y - p2.y) : null;
-
-      const fwhr = dist(placedPoints.lCheek, placedPoints.rCheek) && dist(placedPoints.nasion, placedPoints.stomion)
-        ? (dist(placedPoints.lCheek, placedPoints.rCheek) / dist(placedPoints.nasion, placedPoints.stomion)).toFixed(2)
-        : '--';
-
-      const bigonial = dist(placedPoints.lGonion, placedPoints.rGonion) && dist(placedPoints.lCheek, placedPoints.rCheek)
-        ? ((dist(placedPoints.lGonion, placedPoints.rGonion) / dist(placedPoints.lCheek, placedPoints.rCheek)) * 100).toFixed(1)
-        : '--';
-
-      const intercanthal = dist(placedPoints.lInnerEye, placedPoints.rInnerEye) && dist(placedPoints.lOuterEye, placedPoints.lInnerEye)
-        ? (dist(placedPoints.lInnerEye, placedPoints.rInnerEye) / dist(placedPoints.lOuterEye, placedPoints.lInnerEye)).toFixed(2)
-        : '--';
-
-      const metrics = [
-        { name: "Upper FWHR", val: fwhr, ideal: "1.90 - 2.00 ratio" },
-        { name: "Bigonial / Bizygomatic", val: bigonial + (bigonial !== '--' ? '%' : ''), ideal: "86.0 - 90.0 %" },
-        { name: "Intercanthal Index", val: intercanthal, ideal: "1.00 - 1.05 ratio" }
-      ];
-
-      metrics.forEach(m => {
-        container.innerHTML += `
-          <div class="metric-card">
-            <div>
-              <div class="metric-name">${m.name}</div>
-              <div style="font-size: 0.7rem; color: var(--text-muted);">Ideal: ${m.ideal}</div>
-            </div>
-            <div class="metric-val">${m.val}</div>
-          </div>
-        `;
+          drawOverlays();
+          renderPointGrid();
+        }
       });
+      await faceMesh.send({ image: imgElement });
     }
 
-    window.addEventListener('resize', resizeCanvas);
-    imgElement.onload = () => {
-      resizeCanvas();
-      renderPointGrid();
-      updateActivePointDisplay();
-    };
-
-    if (imgElement.complete) {
-      resizeCanvas();
-      renderPointGrid();
-      updateActivePointDisplay();
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          imgElement.src = event.target.result;
+          placedPoints[viewMode] = {};
+          currentPointIndex = 0;
+          updateActivePointDisplay();
+        };
+        reader.readAsDataURL(file);
+      }
     }
+
+    window.addEventListener('resize', initCanvas);
+    imgElement.onload = initCanvas;
+    renderPointGrid();
+    updateActivePointDisplay();
   </script>
 </body>
 </html>
