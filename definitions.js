@@ -68,9 +68,9 @@ export const METRIC_DEFINITIONS = [
     name: "Upper FWHR",
     category: "Proportions",
     photo: "front",
-    description: "Bizygomatic width relative to upper facial height (Nasion to Lip Apex).",
+    description: "Bizygomatic width relative to upper facial height (Nose Bridge to Lip Apex).",
     pointsNeeded: [
-      { id: "nasion", label: "Nasion", index: 168 },
+      { id: "nasion", label: "Nose Bridge", index: 6 },
       { id: "lipApex", label: "Upper Lip Apex", index: 0 },
       { id: "lCheek", label: "Left Zygoma", index: 234 },
       { id: "rCheek", label: "Right Zygoma", index: 454 }
@@ -131,20 +131,20 @@ export const METRIC_DEFINITIONS = [
     name: "Midface Ratio",
     category: "Proportions",
     photo: "front",
-    description: "Interpupillary distance relative to midface vertical height.",
+    description: "Intercanthal distance relative to midface vertical height.",
     pointsNeeded: [
-      { id: "lPupil", label: "Left Pupil", index: 468 },
-      { id: "rPupil", label: "Right Pupil", index: 473 },
+      { id: "lInner", label: "Left Inner Eye", index: 133 },
+      { id: "rInner", label: "Right Inner Eye", index: 362 },
       { id: "subnasale", label: "Subnasale", index: 2 }
     ],
     idealMin: 0.97,
     idealMax: 1.00,
     unit: "ratio",
     calculate: (pts) => {
-      const pupilW = Math.hypot(pts.rPupil.x - pts.lPupil.x, pts.rPupil.y - pts.lPupil.y);
-      const midY = (pts.lPupil.y + pts.rPupil.y) / 2;
+      const eyeW = Math.hypot(pts.rInner.x - pts.lInner.x, pts.rInner.y - pts.lInner.y);
+      const midY = (pts.lInner.y + pts.rInner.y) / 2;
       const midH = Math.abs(pts.subnasale.y - midY);
-      return pupilW / (midH || 1);
+      return eyeW / (midH || 1);
     }
   },
 
@@ -276,7 +276,7 @@ export const METRIC_DEFINITIONS = [
     unit: "deg",
     calculate: (pts) => {
       const dx = pts.lOuter.x - pts.lInner.x;
-      const dy = -(pts.lOuter.y - pts.lInner.y); // Invert Y for Cartesian angle
+      const dy = -(pts.lOuter.y - pts.lInner.y);
       return (Math.atan2(dy, dx) * 180) / Math.PI;
     }
   },
@@ -429,7 +429,7 @@ export const METRIC_DEFINITIONS = [
     description: "Angle formed between forehead slope and nasal bridge.",
     pointsNeeded: [
       { id: "glabella", label: "Glabella", index: 9 },
-      { id: "nasion", label: "Nasion", index: 168 },
+      { id: "nasion", label: "Nose Bridge", index: 6 },
       { id: "pronasale", label: "Nose Tip", index: 4 }
     ],
     idealMin: 116.0,
@@ -482,7 +482,7 @@ export const METRIC_DEFINITIONS = [
     photo: "front",
     description: "Horizontal deviation angle between nose tip and chin relative to central line.",
     pointsNeeded: [
-      { id: "nasion", label: "Nasion", index: 168 },
+      { id: "nasion", label: "Nose Bridge", index: 6 },
       { id: "pronasale", label: "Nose Tip", index: 4 },
       { id: "pogonion", label: "Pogonion", index: 199 }
     ],
